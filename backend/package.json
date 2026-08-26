@@ -1,0 +1,25 @@
+{
+  "name": "Digital Wallet Backend",
+  "version": "1.0.0",
+  "description": "Level Up!!!!",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts", 
+    "start": "node dist/server.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Aditya Chouhan",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.3.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
