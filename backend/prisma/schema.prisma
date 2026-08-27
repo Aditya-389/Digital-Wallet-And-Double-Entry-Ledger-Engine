@@ -7,9 +7,41 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  CUSTOMER
+  SUPPORT
+  ADMIN
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+  id              Int             @id @default(autoincrement())
+  name            String?                                // Optional Field (Nullable)
+  email           String          @unique
+  passwordHash    String 
+  refreshTokens   RefreshToken[]                   // 1. Relation field: Virtual array representing the many side
+  role            Role            @default(CUSTOMER)
+  isActive        Boolean         @default(false) 
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  lastLoginAt     DateTime?
+}
+
+
+//==================================
+
+/*
+onDelete : Cascade
+When a user permanentaly deleted ---> All their RefreshTokens deleted automatically 
+*/
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int                                              // 2. Foreign Key: The physical column stored in the database
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)  // 3. Relation attribute
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])                       // Find all refresh tokens belonging to this user
 }
