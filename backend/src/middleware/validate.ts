@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { errorResponse } from "../utils/Api.response.ts";
+import { errorResponse } from "../utils/ApiResponse.ts";
 
 
 export const validate = (schema: z.ZodType) => {

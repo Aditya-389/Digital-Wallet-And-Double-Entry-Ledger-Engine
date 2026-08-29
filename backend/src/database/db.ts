@@ -1,9 +1,9 @@
-import 'dotenv/config'
+import config from "../config/env.ts"
 import { PrismaClient } from '../generated/prisma/client.ts'
 import { PrismaNeon } from '@prisma/adapter-neon'
 
 const adapter = new PrismaNeon({
-  connectionString: process.env.DATABASE_URL!
+  connectionString: config.DATABASE_URL!
 })
 
 export const prisma = new PrismaClient({ adapter })

@@ -42,7 +42,7 @@ export const errorResponse = (
         message,
     };
 
-    // if eroor exists include it in response
+    // if erorr exists include it in response
     if (error !== undefined) {
         response.error = error;
     }
