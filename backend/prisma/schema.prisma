@@ -20,7 +20,7 @@ model User {
   passwordHash    String 
   refreshTokens   RefreshToken[]                   // 1. Relation field: Virtual array representing the many side
   role            Role            @default(CUSTOMER)
-  isActive        Boolean         @default(false) 
+  isActive        Boolean         @default(true) 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   lastLoginAt     DateTime?

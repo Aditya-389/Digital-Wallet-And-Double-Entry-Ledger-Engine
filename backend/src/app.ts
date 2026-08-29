@@ -1,6 +1,7 @@
 import express from "express";
 
 import { connectDB } from "./database/db.ts"
+import authRoutes  from "./route/auth.ts";
 
 import errorHandler from "./middleware/errorHandler.ts";
 
@@ -9,6 +10,8 @@ const app = express();
 connectDB();
 
 app.use(express.json());
+
+app.use('/api/auth', authRoutes)
 
 app.use(errorHandler);  
 

@@ -11,10 +11,11 @@ export const validate = (schema: z.ZodType) => {
     ) => {
         const result = schema.safeParse(req.body);
 
-        if(!result) {
+        if(!result.success) {
             return res.status(400).json(
                 errorResponse(
                     "Validation Failed",
+                    result.error.issues
                 )
             )
         }
