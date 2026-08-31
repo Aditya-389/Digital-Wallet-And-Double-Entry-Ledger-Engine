@@ -198,3 +198,41 @@ export const rotateRefreshTokenService = async(oldRefreshToken: string) => {
     return { newAccessToken, newRefreshToken };
 
 }
+
+export const logoutUserService = async(oldRefreshToken: string) => {
+    /*
+        Designs 
+        
+        Logout
+        → Revoke current refresh-token
+        → Clear cookie
+
+        Account deactivation
+        → isActive = false
+        → Revoke ALL refresh-token sessions
+
+        User deletion
+        → Avoid for customers in this project
+        → Preserve financial/audit history
+    
+    */
+
+    const payload = verifyRefreshToken(oldRefreshToken);
+    const { jti } = payload;
+
+    if(!jti) {
+        throw new ApiError(
+            401,
+            "Unauthorized. Please loggin again"
+        )
+    }
+    
+    // revoke current session
+    await prisma.refreshToken.update({
+        where: {jti},
+        data: {
+            revokedAt: new Date()
+        }
+    })
+
+}
