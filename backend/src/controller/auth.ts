@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { loginUserService, registerUserService } from "../service/auth.ts";
+import { loginUserService, registerUserService, rotateRefreshTokenService } from "../service/auth.ts";
 import { successResponse } from "../utils/ApiResponse.ts";
+import { ApiError } from "../utils/ApiError.ts";
 
 
 
@@ -42,3 +43,34 @@ export const loginUser = async(req: Request, res: Response) => {
         )
     );
 }
+
+export const rotateRefreshToken = async(req: Request, res: Response) => {
+    const oldRefreshToken = req.cookies.refreshToken;
+
+    if(!oldRefreshToken) {
+        throw new ApiError(
+            404,
+            "Refresh token not found"
+        )
+    }
+
+    const { newAccessToken, newRefreshToken } = await rotateRefreshTokenService(oldRefreshToken);
+
+    res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+    });
+
+    res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+    })
+
+    return res.status(200).json(
+        successResponse(
+            "Refresh Token rotation successfull"
+        )
+    );
+} 

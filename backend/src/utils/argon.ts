@@ -13,6 +13,7 @@ export const comparePassword = async(password: string, passwordHash: string) => 
     return await argon2.verify(passwordHash, password);
 }
 
+
 export const hashRefreshToken = async(refreshToken: string) => {
     return await argon2.hash(
         refreshToken,
@@ -20,6 +21,10 @@ export const hashRefreshToken = async(refreshToken: string) => {
             type: argon2.argon2id,
         }
     )
+}
+
+export const compareRefreshToken = async(refreshToken: string, refreshTokenHash: string) => {
+    return await argon2.verify(refreshTokenHash, refreshToken);
 }
 
 /*

@@ -1,7 +1,7 @@
 import { prisma } from "../database/db.ts";
 import { ApiError } from "../utils/ApiError.ts";
-import { comparePassword, hashPassword, hashRefreshToken } from "../utils/argon.ts";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.ts";
+import { comparePassword, compareRefreshToken, hashPassword, hashRefreshToken } from "../utils/argon.ts";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt.ts";
 
 
 export const registerUserService = async(name: string, email: string, password: string) => {
@@ -98,3 +98,103 @@ export const loginUserService = async(email: string, passsword: string) => {
 
     return {accessToken, refreshToken};
 } 
+
+export const rotateRefreshTokenService = async(oldRefreshToken: string) => {
+    const payload = verifyRefreshToken(oldRefreshToken);
+    const { id: userId, role, jti } = payload;
+
+    if(!jti) {
+        throw new ApiError(
+            401,
+            "Unauthorized. Please loggin again"
+        )
+    }
+
+    // validating refresh token using stored jti
+    const storedRefreshToken = await prisma.refreshToken.findUnique({
+        where: {jti},
+        select: {
+            tokenHash: true,
+            revokedAt: true,
+            expiresAt: true
+        }
+    });
+
+    if(!storedRefreshToken?.tokenHash) {
+        throw new ApiError(
+            401,
+            "Unauthorized. Please loggin again"
+        )
+    }
+
+    if(storedRefreshToken.revokedAt !== null) {
+        // token is already revoked
+        throw new ApiError(
+            401,
+            "Unauthorized. Please loggin again"
+        )
+    }
+
+    if(storedRefreshToken.expiresAt <= new Date()) {
+        // token is already expired
+        throw new ApiError(
+            401,
+            "Unauthorized. Please loggin again"
+        )
+    }
+
+    // match 
+    const isRefreshTokenMatched = await compareRefreshToken(oldRefreshToken, storedRefreshToken.tokenHash);
+
+    if(!isRefreshTokenMatched) {
+        throw new ApiError(
+            401,
+            "Unauthorized. Please loggin again"
+        )
+    }
+
+    // generate new access and refresh token
+    const newAccessToken = generateAccessToken(userId, role);
+    const { token: newRefreshToken, jti: newJti } = generateRefreshToken(userId, role);
+
+    // hash new refresh token
+    const newRefreshTokenHash = await hashRefreshToken(newRefreshToken);
+
+    /*
+    
+    Database related actions 
+    --> Here, what if update happens and then creation failed (for some reason), then 
+        result : previous of is revoked and new one is not created and user gets loggedout
+
+        To handle this, either both update and create happens or none
+
+        this way even if creation failed, it rolebacks and the previous become valid again
+
+        use database transections
+    */
+
+    await prisma.$transaction(async(tx) => {
+
+        // update refresh token table
+        await tx.refreshToken.update({
+            where: {jti},
+            data : {
+                revokedAt: new Date()
+            }
+        });
+
+        // create new session of user
+        await tx.refreshToken.create({
+            data: {
+                userId,
+                tokenHash: newRefreshTokenHash,
+                jti: newJti,
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            }
+        });
+    })
+
+
+    return { newAccessToken, newRefreshToken };
+
+}

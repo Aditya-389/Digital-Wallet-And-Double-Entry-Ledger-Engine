@@ -3,6 +3,12 @@ import { Role } from '../generated/prisma/enums.ts';
 
 import jwt from 'jsonwebtoken';
 
+interface RefreshTokenPayload {
+    id: number,
+    role: Role,
+    jti: string
+}
+
 
 export const generateAccessToken = (userId: number, role: Role) => {
     const payload = {
@@ -46,11 +52,11 @@ export const verifyAccessToken = (accessToken: string) => {
     );
 };
 
-export const verifyRefreshToken = (refreshToken: string) => {
+export const verifyRefreshToken = (refreshToken: string) : RefreshTokenPayload => {
     return jwt.verify(
         refreshToken,
         config.JWT_REFRESH_SECRET!
-    );
+    ) as RefreshTokenPayload
 };
 
 
