@@ -10,7 +10,16 @@ export const hashPassword = async(password: string) => {
 }
 
 export const comparePassword = async(password: string, passwordHash: string) => {
-    return await argon2.verify(password, passwordHash);
+    return await argon2.verify(passwordHash, password);
+}
+
+export const hashRefreshToken = async(refreshToken: string) => {
+    return await argon2.hash(
+        refreshToken,
+        {
+            type: argon2.argon2id,
+        }
+    )
 }
 
 /*
