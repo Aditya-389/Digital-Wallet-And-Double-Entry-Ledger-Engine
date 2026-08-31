@@ -4,8 +4,6 @@ import { comparePassword, hashPassword, hashRefreshToken } from "../utils/argon.
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.ts";
 
 
-
-
 export const registerUserService = async(name: string, email: string, password: string) => {
     
     // user already Exists? 
@@ -73,19 +71,28 @@ export const loginUserService = async(email: string, passsword: string) => {
         )
     }
 
+    // update last login field of user
+    await prisma.user.update({
+        where: {email},
+        data : {
+            lastLoginAt: new Date()
+        }
+    });
+
     // generate access and refresh token
     const accessToken = generateAccessToken(user.id, user.role);
-    const refreshToken = generateRefreshToken(user.id, user.role);
+    const { token: refreshToken, jti} = generateRefreshToken(user.id, user.role);
 
     // hash refresh token
     const refreshTokenHash = await hashRefreshToken(refreshToken);
-
+ 
     // store refresh token in DB
     await prisma.refreshToken.create({
         data: {
             userId: user.id,
             tokenHash: refreshTokenHash,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            jti
         }
     })
 

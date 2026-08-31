@@ -38,6 +38,7 @@ model RefreshToken {
   id        Int       @id @default(autoincrement())
   userId    Int                                              // 2. Foreign Key: The physical column stored in the database
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)  // 3. Relation attribute
+  jti       String    @unique
   tokenHash String    @unique
   expiresAt DateTime
   createdAt DateTime  @default(now())

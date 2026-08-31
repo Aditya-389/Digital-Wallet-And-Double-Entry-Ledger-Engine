@@ -20,19 +20,23 @@ export const generateAccessToken = (userId: number, role: Role) => {
 }
 
 export const generateRefreshToken = (userId: number, role: Role) => {
+    const jti = crypto.randomUUID();
+
     const payload = {
         id: userId,
         role,
-        jti: crypto.randomUUID()   // Unique key to identify refresh token
+        jti  // Unique key to identify refresh token
     };
 
-    return jwt.sign(
+    const token = jwt.sign(
         payload,
         config.JWT_REFRESH_SECRET!,
         {
             expiresIn: "7d"
         }
     )
+
+    return {token, jti}
 }
 
 export const verifyAccessToken = (accessToken: string) => {
