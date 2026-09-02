@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { errorResponse, successResponse } from '../utils/ApiResponse.ts';
-import { createWalletService, walletLookupService } from '../service/wallet.ts';
+import { createWalletService, deactivateWalletService, singleWalletDetailsService, walletLookupService } from '../service/wallet.ts';
 
 
 export const createWallet = async(req: Request, res: Response) => {
@@ -43,6 +43,46 @@ export const walletLookup = async(req: Request, res: Response) => {
         successResponse(
             "Wallet fetched successfully",
             wallets
+        )
+    );
+}
+
+export const singleWalletDetails = async(req: Request, res: Response) => {
+    const userId = req.userId;
+    const walletId = Number(req.params.id);
+
+    if(!walletId) {
+        return res.status(400).json(
+            errorResponse("Please select valid wallet")
+        )
+    }
+
+    const wallet = await singleWalletDetailsService(userId, walletId);
+
+    return res.status(201).json(
+        successResponse(
+            "Wallet fetched successfully",
+            wallet
+        )
+    );
+}
+
+export const deactivateWallet = async(req: Request, res: Response) => {
+    const userId = req.userId;
+    const walletId = Number(req.params.id);
+
+    if(!walletId) {
+        return res.status(400).json(
+            errorResponse("Please select valid wallet")
+        )
+    }
+
+    const wallet = await deactivateWalletService(userId, walletId);
+
+    return res.status(201).json(
+        successResponse(
+            "Wallet deactivate successfully",
+            wallet
         )
     );
 

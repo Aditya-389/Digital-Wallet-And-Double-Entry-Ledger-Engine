@@ -52,3 +52,59 @@ export const walletLookupService = async(userId: number) => {
 
     return wallets;
 }
+
+
+export const singleWalletDetailsService = async(userId: number, walletId: number) => {
+    // find wallet 
+    const wallet = await prisma.wallet.findUnique({
+        where: {id: walletId}
+    });
+
+    if(!wallet) {
+        throw new ApiError(
+            404,
+            "wallet not found."
+        )
+    }
+
+    // preventing user A to access user B's wallets by comparing creator id's (i.e., userId's)
+    if(wallet.userId !== userId) {
+        throw new ApiError(
+            401,
+            "user not authorized to view this wallet"
+        )
+    }
+
+    return wallet;
+}
+
+export const deactivateWalletService = async(userId: number, walletId: number) => {
+  // find wallet 
+    const wallet = await prisma.wallet.findUnique({
+        where: {id: walletId}
+    });
+
+    if(!wallet) {
+        throw new ApiError(
+            404,
+            "wallet not found."
+        )
+    }
+
+    // preventing user A to access user B's wallets by comparing creator id's (i.e., userId's)
+    if(wallet.userId !== userId) {
+        throw new ApiError(
+            401,
+            "user not authorized to view this wallet"
+        )
+    }
+    
+    await prisma.wallet.update({
+        where: {id: walletId},
+        data: {
+            isActive: false
+        } 
+    });
+
+    return wallet;
+} 
