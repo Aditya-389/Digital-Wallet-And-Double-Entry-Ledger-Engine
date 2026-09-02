@@ -3,6 +3,11 @@ import { Role } from '../generated/prisma/enums.ts';
 
 import jwt from 'jsonwebtoken';
 
+interface AccessTokenPlayload {
+    id: number,
+    role: Role
+}
+
 interface RefreshTokenPayload {
     id: number,
     role: Role,
@@ -49,7 +54,7 @@ export const verifyAccessToken = (accessToken: string) => {
     return jwt.verify(
         accessToken,
         config.JWT_ACCESS_SECRET!
-    );
+    ) as AccessTokenPlayload;
 };
 
 export const verifyRefreshToken = (refreshToken: string) : RefreshTokenPayload => {
