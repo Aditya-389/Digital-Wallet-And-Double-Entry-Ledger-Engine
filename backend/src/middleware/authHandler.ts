@@ -22,6 +22,7 @@ export const authHandler = (
     try{
         const decode = verifyAccessToken(token);
         req.userId = decode.id;
+        req.role = decode.role;
         
         return next();
 
