@@ -13,6 +13,22 @@ enum Role {
   ADMIN
 }
 
+enum TransactionType {
+  TRANSFER
+  DEPOSIT
+  WITHDRAWAL
+  REFUND
+  REVERSAL
+  FEE
+}
+
+enum EntryType {
+  DEBIT
+  CREDIT
+}
+
+//==========
+
 model User {
   id              Int             @id @default(autoincrement())
   name            String?                                // Optional Field (Nullable)
@@ -48,7 +64,7 @@ model RefreshToken {
   @@index([userId])                       // Find all refresh tokens belonging to this user
 }
 
-//-======================================================================
+//======================================================================
 
 model Wallet {
   id        Int       @id @default(autoincrement())
@@ -61,8 +77,62 @@ model Wallet {
 
   isActive  Boolean   @default(true)                 // Disable a wallet without deleting history
 
+  ledgerAccount LedgerAccount?                     // one wallet ----> one LedgerAccount
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   @@index([userId])
+}
+
+//============================================================================
+
+model LedgerAccount {
+  id        Int      @id @default(autoincrement())
+
+  walletId  Int      @unique
+
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries   LedgerEntry[]            // one LedgerAccount ----> Many LedgerEntries
+}
+
+//============================================================================
+
+model LedgerTransaction {
+  id          Int      @id @default(autoincrement())
+
+  reference   String   @unique          // stable business identifier for tracing.
+
+  type        TransactionType
+
+  description String?
+
+  createdAt   DateTime @default(now())
+
+  entries     LedgerEntry[]             // many ledgerEntries ----> one transection
+}
+
+//================================================================================
+
+model LedgerEntry {
+  id            Int               @id @default(autoincrement())
+
+  transactionId Int
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id])
+
+  accountId     Int
+  account       LedgerAccount     @relation(fields: [accountId], references: [id])
+
+  type          EntryType
+
+  amount        Decimal           @db.Decimal(19, 4)
+
+  createdAt     DateTime          @default(now())
+
+  @@index([transactionId])
+  @@index([accountId])
 }
