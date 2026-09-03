@@ -27,6 +27,11 @@ enum EntryType {
   CREDIT
 }
 
+enum IdempotencyStatus {
+  PENDING
+  COMPLETED
+}
+
 //==========
 
 model User {
@@ -35,6 +40,7 @@ model User {
   email           String          @unique
   passwordHash    String 
   refreshTokens   RefreshToken[]                     // 1. Relation field: Virtual array representing the many side
+  idempotencyKeys IdempotencyKey[]
   wallets         Wallet[]        
   role            Role            @default(CUSTOMER)
   isActive        Boolean         @default(true) 
@@ -135,4 +141,28 @@ model LedgerEntry {
 
   @@index([transactionId])
   @@index([accountId])
+}
+
+//=============================================================================
+
+model IdempotencyKey {
+  id           Int      @id @default(autoincrement())
+
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)  // one user --> may keys
+
+  key          String   // user A and user B may use same key, because every transactions is isolated that makes them different requests
+  endpoint     String
+
+  status       IdempotencyStatus @default(PENDING)
+  requestHash  String
+
+  responseCode Int?
+  responseBody Json?  // A retry can receive the same result without executing the transfer again. not calculating again for "same idempotency key + same operation"
+
+  createdAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  @@unique([userId, key, endpoint])  // same key can be used on different operations(routes) : therefore using endpoint in index
+  @@index([userId])
 }
