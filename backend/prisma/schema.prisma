@@ -32,6 +32,12 @@ enum IdempotencyStatus {
   COMPLETED
 }
 
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+}
+
 //==========
 
 model User {
@@ -84,6 +90,8 @@ model Wallet {
   isActive  Boolean   @default(true)                 // Disable a wallet without deleting history
 
   ledgerAccount LedgerAccount?                     // one wallet ----> one LedgerAccount
+  payments      Payment[]
+
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -165,4 +173,42 @@ model IdempotencyKey {
 
   @@unique([userId, key, endpoint])  // same key can be used on different operations(routes) : therefore using endpoint in index
   @@index([userId])
+}
+
+//==========================================================================================================
+
+model Payment {
+    id                Int       @id @default(autoincrement())
+
+    walletId          Int
+    wallet            Wallet    @relation(fields: [walletId], references: [id])
+
+    providerPaymentId String    @unique
+
+    amount            Decimal
+    currency          String
+
+    status            PaymentStatus @default(PENDING)
+
+    createdAt         DateTime  @default(now())
+    completedAt       DateTime?
+
+    @@index([walletId])
+}
+
+//=========================================================================================================
+
+model WebhookEvent {
+    id          Int      @id @default(autoincrement())
+
+    provider    String
+    eventId     String
+    eventType   String
+
+    payload     Json
+
+    processedAt DateTime?
+    createdAt   DateTime @default(now())
+
+    @@unique([provider, eventId])
 }

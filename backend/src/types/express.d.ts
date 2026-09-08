@@ -12,7 +12,8 @@ declare global {
         interface Request {
             userId: number;
             role: Role;
-            idempotencyKey: string
+            idempotencyKey: string;
+            walletId: number;
 
         }
     }
