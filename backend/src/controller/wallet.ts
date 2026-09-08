@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { errorResponse, successResponse } from '../utils/ApiResponse.ts';
-import { createWalletService, deactivateWalletService, singleWalletDetailsService, walletLookupService } from '../service/wallet.ts';
+import { createWalletService, deactivateWalletService, getBalanceServie, singleWalletDetailsService, walletLookupService } from '../service/wallet.ts';
 
 
 export const createWallet = async(req: Request, res: Response) => {
@@ -86,4 +86,21 @@ export const deactivateWallet = async(req: Request, res: Response) => {
         )
     );
 
+}
+
+
+export const getBalance = async(req: Request, res: Response) => {
+    const { walletId } = req.body;
+    const userId = req.userId;
+
+    const balance = await getBalanceServie(userId, walletId);
+
+    return res.status(200).json(
+        successResponse(
+            "Balance fetched successfully",
+            {
+                balance: balance
+            }
+        )
+    );
 }
