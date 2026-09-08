@@ -5,6 +5,7 @@ import authRoutes  from "./route/auth.ts";
 import walletRoutes from "./route/wallet.ts"
 import paymentRoute  from "./route/payment.ts";
 import webhookRouter from "./route/webhook.ts";
+import transferRoute from "./route/transfer.ts"
 
 import errorHandler from "./middleware/errorHandler.ts";
 import cookieParser from "cookie-parser";
@@ -22,6 +23,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/payment', paymentRoute);
+app.use('/api/transfer', transferRoute);
 
 app.use(errorHandler);  
 

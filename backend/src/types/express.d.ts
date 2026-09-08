@@ -13,8 +13,6 @@ declare global {
             userId: number;
             role: Role;
             idempotencyKey: string;
-            walletId: number;
-
         }
     }
 }

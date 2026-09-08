@@ -14,6 +14,7 @@ NOTE:
 
 */
 export const transferSchema = z.object({
+    sourceWalletId: z.number().int().positive(),
     destinationWalletId: z.number().int().positive(),
     amount: z.string().regex(/^\d{1,15}(\.\d{1,4})?$/), // taking amount in string
 }).strict();

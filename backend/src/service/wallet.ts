@@ -1,4 +1,5 @@
 import { prisma } from "../database/db.ts"
+import { Prisma } from "../generated/prisma/client.ts";
 import { ApiError } from "../utils/ApiError.ts";
 
 
@@ -119,3 +120,59 @@ export const deactivateWalletService = async(userId: number, walletId: number) =
 
     return wallet;
 } 
+
+export const getBalanceServie = async(userId: number, walletId: number) => {
+    // wallet must belongs to authenticated user
+    const wallet = await prisma.wallet.findFirst({
+        where: {
+            id: walletId,
+            userId,
+            isActive: true
+        }
+    });
+
+    if(!wallet) {
+        throw new ApiError(
+            404,
+            "Wallet not found"
+        )
+    }
+
+    const ledgerAccount = await prisma.ledgerAccount.findUnique({
+        where: {walletId: wallet.id}
+    });
+
+    if(!ledgerAccount) {
+        throw new ApiError(
+            404,
+            "Account not found"
+        )
+    }
+
+    const creditTotal = await prisma.ledgerEntry.aggregate({
+        where: {
+            accountId: ledgerAccount.id,
+            type: "CREDIT"
+        },
+        _sum: {
+            amount: true
+        }
+    });
+
+    const debitTotal = await prisma.ledgerEntry.aggregate({
+        where: {
+            accountId: ledgerAccount.id,
+            type: "DEBIT"
+        },
+        _sum: {
+            amount: true
+        }
+    });
+
+    const creditBalance = creditTotal._sum.amount ?? new Prisma.Decimal(0);
+    const debitBalance  = debitTotal._sum.amount ?? new Prisma.Decimal(0);
+    
+    const balance = creditBalance.minus(debitBalance);
+
+    return balance;
+}
