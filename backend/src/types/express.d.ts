@@ -11,7 +11,9 @@ declare global {
     namespace Express {
         interface Request {
             userId: number;
-            role: Role
+            role: Role;
+            idempotencyKey: string
+
         }
     }
 }

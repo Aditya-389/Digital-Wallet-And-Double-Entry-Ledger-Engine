@@ -22,15 +22,26 @@ export const createWalletService = async(userId: number, currency: string, name?
         throw new ApiError(400, "Invalid currency type. Please enter valid currency type");
     }
 
-    // create wallet
-    const wallet = await prisma.wallet.create({
-        data: {
-            userId: userId,
-            name: name,
-            currency: currency,
+    // creating ledgerAccount when wallet is created. 
+    const wallet = await prisma.$transaction(async(tx) => {
+        const wallet = await tx.wallet.create({
+            data: {
+                userId: userId,
+                name: name,
+                currency: currency,
 
-        }
-    });
+            }
+        });
+
+        // Actomic operation
+        await tx.ledgerAccount.create({
+            data: {
+                walletId: wallet.id,
+            }
+        });
+
+        return wallet;
+    })
 
     return wallet;
 }
@@ -79,7 +90,7 @@ export const singleWalletDetailsService = async(userId: number, walletId: number
 }
 
 export const deactivateWalletService = async(userId: number, walletId: number) => {
-  // find wallet 
+    // find wallet 
     const wallet = await prisma.wallet.findUnique({
         where: {id: walletId}
     });
